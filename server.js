@@ -15,14 +15,22 @@ app.get('/',function(req,res){
 
 app.get('/todos', function(req,res){
 	var queryParams = req.query;
-	var filteredTodos;
+	var filteredTodos = todos;
+	
 	if(queryParams.hasOwnProperty('completed') && queryParams.completed === 'true'){
 		filteredTodos = _.where(todos,{completed:true})
 	}else if(queryParams.hasOwnProperty('completed') && queryParams.completed === 'false'){
 		filteredTodos = _.where(todos,{completed:false})
-	}else {
-		filteredTodos = todos;
 	}
+
+	if(queryParams.hasOwnProperty('description') && queryParams.description.trim().length > 0){
+		filteredTodos = _.filter(filteredTodos,function(filteredTodo){
+			var description = filteredTodo.description
+			console.log(description.indexOf(queryParams.description));
+			return description.indexOf(queryParams.description) > 0;
+		});
+	}	
+
 	res.json(filteredTodos);
 });
 
