@@ -32,7 +32,7 @@ app.post('/todos',function(req,res){
 	var body = _.pick(req.body,'completed','description');
 	 
 	if(!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0){
-		return res.status(404).send();
+		return res.status(400).send();
 	}
 
 	body.description = body.description.trim();
@@ -40,6 +40,19 @@ app.post('/todos',function(req,res){
 	body.id = todoNextId++;		
 	todos.push(body);
 	res.json(body);	
+});
+
+app.delete('/todos/:id',function(req,res){
+	var todoId = parseInt(req.params.id, 10);
+	var matched = _.findWhere(todos,{id: todoId});	
+
+	if(matched){
+		todos = _.without(todos,matched);		
+		res.json(todos);
+	}else{
+		res.status(404).json({"error": "no todo item found with that id"});
+	}
+
 });
 
 
