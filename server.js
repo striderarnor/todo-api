@@ -15,28 +15,53 @@ app.get('/', function(req, res) {
 });
 
 app.get('/todos', function(req, res) {
-	var queryParams = req.query;
-	var filteredTodos = todos;
+	var query = req.query;
+	var where = {};
 
-	if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
-		filteredTodos = _.where(todos, {
-			completed: true
-		})
-	} else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
-		filteredTodos = _.where(todos, {
-			completed: false
-		})
+	if(query.hasOwnProperty('completed') && query.completed === 'true'){
+		where.completed = true;
+	}else if(query.hasOwnProperty('completed') && query.completed === 'false'){
+		where.completed = false;
 	}
 
-	if (queryParams.hasOwnProperty('description') && queryParams.description.trim().length > 0) {
-		filteredTodos = _.filter(filteredTodos, function(filteredTodo) {
-			var description = filteredTodo.description
-			console.log(description.indexOf(queryParams.description));
-			return description.toLowercase().indexOf(queryParams.description.toLowercase()) > 0;
-		});
+	if(query.hasOwnProperty('description') && query.description.trim().length > 0){
+		where.description = {
+			$like:'%'+query.description+'%'
+		}
 	}
 
-	res.json(filteredTodos);
+	db.todo.findAll({
+	where: where
+	}).then(function(todos){
+		if(!!todos){
+			res.json(todos);
+		}else{
+			res.status(404).send();
+		}
+	},function(e){
+		res.status(500).send();
+	});
+	// var filteredTodos = todos;
+
+	// if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
+	// 	filteredTodos = _.where(todos, {
+	// 		completed: true
+	// 	})
+	// } else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
+	// 	filteredTodos = _.where(todos, {
+	// 		completed: false
+	// 	})
+	// }
+
+	// if (queryParams.hasOwnProperty('description') && queryParams.description.trim().length > 0) {
+	// 	filteredTodos = _.filter(filteredTodos, function(filteredTodo) {
+	// 		var description = filteredTodo.description
+	// 		console.log(description.indexOf(queryParams.description));
+	// 		return description.toLowercase().indexOf(queryParams.description.toLowercase()) > 0;
+	// 	});
+	// }
+
+	// res.json(filteredTodos);
 });
 
 app.get('/todos/:id', function(req, res) {
