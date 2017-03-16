@@ -18,27 +18,27 @@ app.get('/todos', function(req, res) {
 	var query = req.query;
 	var where = {};
 
-	if(query.hasOwnProperty('completed') && query.completed === 'true'){
+	if (query.hasOwnProperty('completed') && query.completed === 'true') {
 		where.completed = true;
-	}else if(query.hasOwnProperty('completed') && query.completed === 'false'){
+	} else if (query.hasOwnProperty('completed') && query.completed === 'false') {
 		where.completed = false;
 	}
 
-	if(query.hasOwnProperty('description') && query.description.trim().length > 0){
+	if (query.hasOwnProperty('description') && query.description.trim().length > 0) {
 		where.description = {
-			$like:'%'+query.description+'%'
+			$like: '%' + query.description + '%'
 		}
 	}
 
 	db.todo.findAll({
-	where: where
-	}).then(function(todos){
-		if(!!todos){
+		where: where
+	}).then(function(todos) {
+		if (!!todos) {
 			res.json(todos);
-		}else{
+		} else {
 			res.status(404).send();
 		}
-	},function(e){
+	}, function(e) {
 		res.status(500).send();
 	});
 	// var filteredTodos = todos;
@@ -67,13 +67,13 @@ app.get('/todos', function(req, res) {
 app.get('/todos/:id', function(req, res) {
 	var todoId = parseInt(req.params.id, 10);
 
-	db.todo.findById(todoId).then(function(todo){
-		if(!!todo){
+	db.todo.findById(todoId).then(function(todo) {
+		if (!!todo) {
 			res.json(todo.toJSON());
-		}else{
+		} else {
 			res.status(404).send();
-		}		
-	}, function(e){
+		}
+	}, function(e) {
 		res.status(500).send();
 	});
 
@@ -109,18 +109,35 @@ app.post('/todos', function(req, res) {
 
 app.delete('/todos/:id', function(req, res) {
 	var todoId = parseInt(req.params.id, 10);
-	var matched = _.findWhere(todos, {
-		id: todoId
+
+	db.todo.destroy({
+		where: {
+			id: todoId
+		}
+	}).then(function(rowsDeleted) {
+		if (rowsDeleted === 0) {
+			res.status(404).json({
+				error: 'no item found with the id'
+			});
+		} else  {
+			res.status(204).send();
+		}
+	}, function(e) {
+		res.status(500).send();
 	});
 
-	if (matched) {
-		todos = _.without(todos, matched);
-		res.json(todos);
-	} else {
-		res.status(404).json({
-			"error": "no todo item found with that id"
-		});
-	}
+	// var matched = _.findWhere(todos, {
+	// 	id: todoId
+	// });
+
+	// if (matched) {
+	// 	todos = _.without(todos, matched);
+	// 	res.json(todos);
+	// } else {
+	// 	res.status(404).json({
+	// 		"error": "no todo item found with that id"
+	// 	});
+	// }
 
 });
 
